@@ -9,6 +9,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { StoreConfigModule } from './modules/store-config/store-config.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
 import { CommonModule } from './common/common.module';
 
 @Module({
@@ -25,6 +26,7 @@ import { CommonModule } from './common/common.module';
     OrdersModule,
     PaymentsModule,
     StoreConfigModule,
+    CouponsModule,
     CommonModule,
   ],
 })
