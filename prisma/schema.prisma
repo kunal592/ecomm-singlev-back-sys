@@ -36,6 +36,11 @@ enum PaymentMethod {
   ONLINE
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FLAT
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -50,6 +55,7 @@ model User {
 
   orders       Order[]
   carts        Cart[]
+  couponUsages CouponUsage[]
 }
 
 model Category {
@@ -57,6 +63,7 @@ model Category {
   name      String
   slug      String    @unique
   products  Product[]
+  coupons   Coupon[]  @relation("CouponCategories")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -88,7 +95,13 @@ model Order {
   customerPhone   String
   customerAddress String
   
-  totalAmount   Float
+  totalAmount     Float
+  discountAmount  Float         @default(0)
+  finalAmount     Float
+  couponId        String?
+  coupon          Coupon?       @relation(fields: [couponId], references: [id])
+  couponCode      String?
+  
   paymentMethod PaymentMethod
   paymentStatus PaymentStatus @default(PENDING)
   orderStatus   OrderStatus   @default(PLACED)
@@ -107,6 +120,43 @@ model OrderItem {
   product   Product  @relation(fields: [productId], references: [id])
   quantity  Int
   price     Float
+}
+
+model Coupon {
+  id              String       @id @default(uuid())
+  code            String       @unique
+  description     String?
+  discountType    DiscountType
+  discountValue   Float
+  maxDiscount     Float?       // Cap for percentage discounts
+  minOrderAmount  Float        @default(0)
+  usageLimit      Int?         // Total uses allowed (null = unlimited)
+  perUserLimit    Int          @default(1) // Uses per user
+  usedCount       Int          @default(0)
+  validFrom       DateTime     @default(now())
+  validUntil      DateTime
+  isActive        Boolean      @default(true)
+  
+  // Optional: restrict to specific categories
+  categories      Category[]   @relation("CouponCategories")
+  
+  orders          Order[]
+  usages          CouponUsage[]
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model CouponUsage {
+  id        String   @id @default(uuid())
+  couponId  String
+  coupon    Coupon   @relation(fields: [couponId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orderId   String
+  usedAt    DateTime @default(now())
+
+  @@unique([couponId, userId, orderId])
 }
 
 model Cart {
